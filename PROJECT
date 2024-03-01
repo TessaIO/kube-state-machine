@@ -7,4 +7,14 @@ layout:
 - go.kubebuilder.io/v4
 projectName: kube-state-machine
 repo: github.com/TessaIO/kube-state-machine
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kube.state.machine
+  group: kube.tessa.io
+  kind: StateMachine
+  path: github.com/TessaIO/kube-state-machine/api/v1
+  version: v1
 version: "3"

@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- kube.tessa.io_v1_statemachine.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
