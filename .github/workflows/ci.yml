@@ -1,0 +1,36 @@
+name: Kuberenets state machine CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v4
+      with:
+        go-version: ^1.20
+
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        args: --timeout 3m0s
+
+    - name: Execute Build
+      run: make build
+
+    - name: Execute unit-test
+      run: make test
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
