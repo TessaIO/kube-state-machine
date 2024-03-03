@@ -28,7 +28,7 @@ jobs:
       run: make build
 
     - name: Execute unit-test
-      run: make test-unit
+      run: make test
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
