@@ -7581,8 +7581,6 @@ spec:
                   - type
                   type: object
                 type: array
-            required:
-            - states
             type: object
           status:
             description: StateMachineStatus defines the observed state of StateMachine
