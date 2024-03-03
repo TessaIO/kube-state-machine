@@ -25,11 +25,13 @@ const (
 	InitState = "init"
 )
 
+// StateMachineManager is a simple state machine manager which controls the state transitions
 type StateMachineManager struct {
 	currentState *string
 	states       map[string]string
 }
 
+// NewStateMachineManager creates a new state machine manager
 func NewStateMachineManager(currentState string, states []kubetessaiov1.State) *StateMachineManager {
 	s := &StateMachineManager{
 		currentState: &currentState,
@@ -40,6 +42,10 @@ func NewStateMachineManager(currentState string, states []kubetessaiov1.State) *
 		s.Add(InitState, states[0].Name)
 		for _, state := range states {
 			if state.Next != nil {
+				// this is a simple check to avoid infinite loops
+				if s.Exist(state.Name) {
+					break
+				}
 				s.Add(state.Name, *state.Next)
 			}
 		}
@@ -48,14 +54,23 @@ func NewStateMachineManager(currentState string, states []kubetessaiov1.State) *
 	return s
 }
 
-func (sm *StateMachineManager) Next(currentState string) *string {
-	if s, ok := sm.states[currentState]; ok {
+// Next returns the next state and advances the current state of the state machine
+func (sm *StateMachineManager) Next() *string {
+	if s, ok := sm.states[*sm.currentState]; ok {
+		sm.currentState = &s
 		return &s
 	}
 
 	return nil
 }
 
+// Add adds a new state transition to the manager
 func (sm *StateMachineManager) Add(currentState, nextState string) {
 	sm.states[currentState] = nextState
+}
+
+// Add adds a new state transition to the manager
+func (sm *StateMachineManager) Exist(state string) bool {
+	_, ok := sm.states[state]
+	return ok
 }

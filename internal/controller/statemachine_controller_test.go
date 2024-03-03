@@ -32,15 +32,24 @@ import (
 
 var _ = Describe("StateMachine Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+		const resourceName = "fsm"
 
 		ctx := context.Background()
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: "default",
 		}
-		statemachine := &kubetessaiov1.StateMachine{}
+		statemachine := &kubetessaiov1.StateMachine{
+			Spec: kubetessaiov1.StateMachineSpec{
+				States: []kubetessaiov1.State{
+					{
+						Name: "state1",
+						Type: kubetessaiov1.StateTypeChoice,
+					},
+				},
+			},
+		}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind StateMachine")
@@ -51,7 +60,14 @@ var _ = Describe("StateMachine Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: kubetessaiov1.StateMachineSpec{
+						States: []kubetessaiov1.State{
+							{
+								Name: "state1",
+								Type: kubetessaiov1.StateTypeChoice,
+							},
+						},
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}

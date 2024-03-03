@@ -66,7 +66,7 @@ type State struct {
 
 // StateMachineSpec defines the desired state of StateMachine
 type StateMachineSpec struct {
-	States []State `json:"states"`
+	States []State `json:"states,omitempty"`
 }
 
 // StateMachineStatus defines the observed state of StateMachine

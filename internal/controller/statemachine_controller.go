@@ -67,7 +67,7 @@ func (r *StateMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request
 }
 
 func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachine *kubetessaiov1.StateMachine) (ctrl.Result, error) {
-	for s := r.stateMachineManager.currentState; s != nil; s = r.stateMachineManager.Next(*s) {
+	for s := r.stateMachineManager.currentState; s != nil; s = r.stateMachineManager.Next() {
 		if *s == InitState {
 			continue
 		}
