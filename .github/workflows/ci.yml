@@ -14,7 +14,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v5
       with:
-        go-version: ^1.20
+        go-version: ^1.22
 
     - name: Check out code
       uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
       run: make build
 
     - name: Execute unit-test
-      run: make test-unit
+      run: make test
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
