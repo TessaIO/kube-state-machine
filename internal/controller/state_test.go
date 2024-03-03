@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	tessaiov1 "github.com/TessaIO/kube-state-machine/api/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func TestNewStateMachineManager(t *testing.T) {
@@ -45,13 +45,13 @@ func TestNewStateMachineManager(t *testing.T) {
 		{
 			name:                  "two consequent states",
 			currentState:          "init",
-			states:                []tessaiov1.State{{Name: "state1", Next: pointer.String("state2")}, {Name: "state2", Next: nil}},
+			states:                []tessaiov1.State{{Name: "state1", Next: ptr.To("state2")}, {Name: "state2", Next: nil}},
 			expectedManagerStates: map[string]string{"init": "state1", "state1": "state2"},
 		},
 		{
 			name:                  "two states with circular reference",
 			currentState:          "init",
-			states:                []tessaiov1.State{{Name: "state1", Next: pointer.String("state2")}, {Name: "state2", Next: pointer.String("state1")}},
+			states:                []tessaiov1.State{{Name: "state1", Next: ptr.To("state2")}, {Name: "state2", Next: ptr.To("state1")}},
 			expectedManagerStates: map[string]string{"init": "state1", "state1": "state2", "state2": "state1"},
 		},
 	}
@@ -88,7 +88,7 @@ func TestStateMachineManager_Add(t *testing.T) {
 func TestStateMachineManager_Next(t *testing.T) {
 	sm := &StateMachineManager{
 		states:       map[string]string{"init": "state1", "state1": "state2"},
-		currentState: pointer.String("init"),
+		currentState: ptr.To("init"),
 	}
 
 	next := sm.Next()
