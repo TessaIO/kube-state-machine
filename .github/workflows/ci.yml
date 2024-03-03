@@ -27,9 +27,6 @@ jobs:
     - name: Execute Build
       run: make build
 
-    - name: Create k8s Kind Cluster
-      uses: helm/kind-action@v1
-
     - name: Execute unit-test
       run: make test-unit
 
