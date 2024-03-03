@@ -1,0 +1,12 @@
+apiVersion: kube.tessa.io.kube.state.machine/v1
+kind: StateMachine
+metadata:
+  labels:
+    app.kubernetes.io/name: statemachine
+    app.kubernetes.io/instance: statemachine-sample
+    app.kubernetes.io/part-of: kube-state-machine
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kube-state-machine
+  name: statemachine-sample
+spec:
+  # TODO(user): Add fields here
