@@ -63,30 +63,37 @@ func (r *StateMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 	// FIXME: We should change the current state from init state to another state based on the state machine status
 	r.stateMachineManager = NewStateMachineManager(InitState, stateMachine.Spec.States)
+	if err := r.ReconcileStates(ctx, stateMachine); err != nil {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
-func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachine *kubetessaiov1.StateMachine) (ctrl.Result, error) {
+func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachine *kubetessaiov1.StateMachine) error {
+	log := log.FromContext(ctx)
+	log.Info("Started reconciling states")
 	for s := r.stateMachineManager.currentState; s != nil; s = r.stateMachineManager.Next() {
 		if *s == InitState {
+			log.Info("Skipping init state")
 			continue
 		}
 
 		state := getStateByName(*s, stateMachine)
 		if state == nil {
-			return ctrl.Result{}, fmt.Errorf("state %s not found", *s)
+			return fmt.Errorf("state %s not found", *s)
 		}
 
+		log.Info(fmt.Sprintf("Reconciling state %s, type: %v", state.Name, state.Type))
 		if state.Type == kubetessaiov1.StateTypeTask {
 			// Here we should deploy the workload
 			job := createJob(*stateMachine, state.Task)
 			err := r.Client.Create(ctx, &job)
 			if err != nil {
-				return ctrl.Result{}, err
+				return err
 			}
 		}
 	}
-	return ctrl.Result{}, nil
+	return nil
 }
 
 func createJob(stateMachine kubetessaiov1.StateMachine, podSpec *corev1.PodSpec) batchv1.Job {

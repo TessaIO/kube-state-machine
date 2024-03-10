@@ -9,4 +9,13 @@ metadata:
     app.kubernetes.io/created-by: kube-state-machine
   name: statemachine-sample
 spec:
-  # TODO(user): Add fields here
+  states:
+    - name: first-job
+      type: Task
+      task:
+        containers:
+          - name: pi-job
+            image: perl:5.34.0
+            command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+        restartPolicy: Never
+      end: true

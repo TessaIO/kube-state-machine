@@ -18,13 +18,13 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kubetessaiov1 "github.com/TessaIO/kube-state-machine/api/v1"
@@ -40,41 +40,10 @@ var _ = Describe("StateMachine Controller", func() {
 			Name:      resourceName,
 			Namespace: "default",
 		}
-		statemachine := &kubetessaiov1.StateMachine{
-			Spec: kubetessaiov1.StateMachineSpec{
-				States: []kubetessaiov1.State{
-					{
-						Name: "state1",
-						Type: kubetessaiov1.StateTypeChoice,
-					},
-				},
-			},
-		}
-
-		BeforeEach(func() {
-			By("creating the custom resource for the Kind StateMachine")
-			err := k8sClient.Get(ctx, typeNamespacedName, statemachine)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &kubetessaiov1.StateMachine{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					Spec: kubetessaiov1.StateMachineSpec{
-						States: []kubetessaiov1.State{
-							{
-								Name: "state1",
-								Type: kubetessaiov1.StateTypeChoice,
-							},
-						},
-					},
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
-		})
+		timeout := time.Second * 10
+		interval := time.Millisecond * 250
 
 		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
 			resource := &kubetessaiov1.StateMachine{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
@@ -82,19 +51,45 @@ var _ = Describe("StateMachine Controller", func() {
 			By("Cleanup the specific resource instance StateMachine")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &StateMachineReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
+		It("should successfully reconcile the task state machine", func() {
+			By("By creating a new state machine with a task state")
+			ctx := context.Background()
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
+			stateMachine := &kubetessaiov1.StateMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      resourceName,
+					Namespace: "default",
+				},
+				Spec: kubetessaiov1.StateMachineSpec{
+					States: []kubetessaiov1.State{
+						{
+							Name: "state1",
+							Type: kubetessaiov1.StateTypeTask,
+							Task: &corev1.PodSpec{
+								Containers: []corev1.Container{
+									{
+										Name:  "test-container",
+										Image: "test-image",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, stateMachine)).Should(Succeed())
+
+			stateMachineLookupKey := types.NamespacedName{Name: resourceName, Namespace: "default"}
+			createdStateMachine := &kubetessaiov1.StateMachine{}
+
+			// We'll need to retry getting this newly created CronJob, given that creation may not immediately happen.
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, stateMachineLookupKey, createdStateMachine)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+			// Let's make sure our Schedule string value was properly converted/handled.
+			Expect(len(createdStateMachine.Spec.States)).Should(Equal(1))
+			Expect(createdStateMachine.Spec.States[0].Type).Should(Equal(kubetessaiov1.StateTypeTask))
 		})
 	})
 })
