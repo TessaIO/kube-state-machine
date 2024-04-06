@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -90,10 +91,22 @@ func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachi
 			job := createJob(*stateMachine, state.Task)
 			err := r.Client.Create(ctx, &job)
 			if err != nil {
+				log.Error(err, "error while creating job", "state", state.Name)
 				return err
 			}
 		case kubetessaiov1.StateTypePass:
 			continue
+		case kubetessaiov1.StateTypeWait:
+			if state.WaitFor == nil {
+				log.Info("waitFor attribute is not specified, skipping...")
+				continue
+			}
+			duration, err := time.ParseDuration(*state.WaitFor)
+			if err != nil {
+				log.Error(err, "error parsing duration", "state", state.Name)
+				return err
+			}
+			time.Sleep(duration)
 		}
 	}
 	return nil
