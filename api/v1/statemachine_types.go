@@ -60,6 +60,7 @@ type State struct {
 	Type    StateType       `json:"type"`
 	Choices *[]Choice       `json:"choices,omitempty"`
 	Task    *corev1.PodSpec `json:"task,omitempty"`
+	WaitFor *string         `json:"task,omitempty"`
 	End     *bool           `json:"end,omitempty"`
 	Next    *string         `json:"next,omitempty"`
 }
