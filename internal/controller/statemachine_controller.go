@@ -84,13 +84,16 @@ func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachi
 		}
 
 		log.Info(fmt.Sprintf("Reconciling state %s, type: %v", state.Name, state.Type))
-		if state.Type == kubetessaiov1.StateTypeTask {
+		switch state.Type {
+		case kubetessaiov1.StateTypeTask:
 			// Here we should deploy the workload
 			job := createJob(*stateMachine, state.Task)
 			err := r.Client.Create(ctx, &job)
 			if err != nil {
 				return err
 			}
+		case kubetessaiov1.StateTypePass:
+			continue
 		}
 	}
 	return nil
