@@ -100,6 +100,9 @@ loop:
 		// TODO: add update status of CRD in the future
 		case kubetessaiov1.StateTypeFail:
 			break loop
+		// TODO: add update status of CRD in the future
+		case kubetessaiov1.StateTypeSucceed:
+			break loop
 		case kubetessaiov1.StateTypeWait:
 			if state.WaitFor == nil {
 				log.Info("waitFor attribute is not specified, skipping...")
