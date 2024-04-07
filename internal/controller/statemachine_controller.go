@@ -73,6 +73,7 @@ func (r *StateMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request
 func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachine *kubetessaiov1.StateMachine) error {
 	log := log.FromContext(ctx)
 	log.Info("Started reconciling states")
+loop:
 	for s := r.stateMachineManager.currentState; s != nil; s = r.stateMachineManager.Next() {
 		if *s == InitState {
 			log.Info("Skipping init state")
@@ -96,6 +97,9 @@ func (r *StateMachineReconciler) ReconcileStates(ctx context.Context, stateMachi
 			}
 		case kubetessaiov1.StateTypePass:
 			continue
+		// TODO: add update status of CRD in the future
+		case kubetessaiov1.StateTypeFail:
+			break loop
 		case kubetessaiov1.StateTypeWait:
 			if state.WaitFor == nil {
 				log.Info("waitFor attribute is not specified, skipping...")
